@@ -16,7 +16,8 @@ public class ShipControls : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-    
+        UpdateControls(Vector2.left);
+        transform.rotation = Quaternion.LookRotation(new Vector3(-1, 0, 0), new Vector3(0, 0, 1));
     }
 
     // Update is called once per frame
@@ -29,6 +30,7 @@ public class ShipControls : MonoBehaviour
         }
 
         UpdateControls(inputStick);
+
 
         //if()
         UpdateParticles(inputStick.magnitude);
@@ -48,25 +50,26 @@ public class ShipControls : MonoBehaviour
         if (strength <= Mathf.Epsilon)
             return;
 
-        float rot_threshold = 0.3f; //If vector smaller than threshold it will just rotate.
+        float rot_threshold = 0.2f; //If vector smaller than threshold it will just rotate.
 
         float thrust = Mathf.Abs(inputStick.magnitude);
+
 
         float x = inputStick.x;
         float y = inputStick.y;
 
-        Quaternion rotation = Quaternion.LookRotation(new Vector3(y, -x, 0), new Vector3(0, 0, 1));
-        tr.rotation = rotation;
+        Vector3 new_forward = new Vector3(x, y, 0);
 
+        Quaternion desired_rotation = Quaternion.LookRotation(inputStick, new Vector3(0, 0, 1));
 
-        //if (strength < rot_threshold)
-        //{
-        //    tr.rotation.SetLookRotation(Vector3(inputStick.x, inputStick.y, 0));
-        //}
-        //else
-        //{
-        //    ship.AddForce(tr.forward * inputStick.magnitude * 100);
-        //}
+        Quaternion q = Quaternion.Slerp(tr.rotation, desired_rotation, Mathf.Clamp(Time.deltaTime * 10.0f, 0.0f, 1.0f));
+
+        tr.rotation = q;
+
+        if(thrust > rot_threshold)
+        { 
+            ship.AddForce(tr.forward * thrust * 10);
+        }
 
 
     }
